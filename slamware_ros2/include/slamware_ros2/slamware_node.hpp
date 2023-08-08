@@ -7,6 +7,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <nav_msgs/msg/occupancy_grid.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/LinearMath/Quaternion.h>
 
@@ -34,11 +35,13 @@ public:
 
 private:
     
-    sensor_msgs::msg::LaserScan::SharedPtr scan_msg_;
+    sensor_msgs::msg::LaserScan::SharedPtr  scan_msg_;
     nav_msgs::msg::OccupancyGrid::SharedPtr map_msg_;
+    nav_msgs::msg::Odometry::SharedPtr      odom_msg_;
 
     rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_scan_pub_;
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr map_pub_;
+    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Clock::SharedPtr clock_;
     geometry_msgs::msg::TransformStamped transform_stamped;

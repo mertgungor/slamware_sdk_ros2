@@ -10,9 +10,11 @@ SlamwareNode::SlamwareNode() : Node("slamware_node")
   clock_    = std::make_shared<rclcpp::Clock>(RCL_ROS_TIME);
   scan_msg_ = std::make_shared<sensor_msgs::msg::LaserScan>();
   map_msg_  = std::make_shared<nav_msgs::msg::OccupancyGrid>();
+  odom_msg_ = std::make_shared<nav_msgs::msg::Odometry>();
 
   laser_scan_pub_ = this->create_publisher<sensor_msgs::msg::LaserScan>("scan", 10);
   map_pub_        = this->create_publisher<nav_msgs::msg::OccupancyGrid>("map", 10);
+  odom_pub_       = this->create_publisher<nav_msgs::msg::Odometry>("odom", 10);
 
   tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
@@ -31,7 +33,7 @@ void SlamwareNode::publish_laser_scan()
   double scan_duration = (end_scan_time - start_scan_time).seconds();
 
   scan_msg_->header.stamp = start_scan_time;
-  scan_msg_->header.frame_id = "base_link";
+  scan_msg_->header.frame_id = "base_link_frame";
   fillRangeMinMaxInMsg_(laser_points, scan_msg_);
 
   scan_msg_->ranges.resize(laser_points.size());
@@ -92,7 +94,7 @@ void SlamwareNode::broadcastMap2Laser(){
   
   transform_stamped.header.stamp = clock_->now();
   transform_stamped.header.frame_id = "map";
-  transform_stamped.child_frame_id = "base_link";
+  transform_stamped.child_frame_id = "base_link_frame";
   transform_stamped.transform.translation.x = laser_pose.x();
   transform_stamped.transform.translation.y = laser_pose.y();
   transform_stamped.transform.translation.z = 0.0;
@@ -104,6 +106,19 @@ void SlamwareNode::broadcastMap2Laser(){
   transform_stamped.transform.rotation.w = q.w();
 
   tf_broadcaster_->sendTransform(transform_stamped);
+
+  odom_msg_->header.stamp = clock_->now();
+  odom_msg_->header.frame_id = "map";
+  odom_msg_->child_frame_id = "base_link_frame";
+  odom_msg_->pose.pose.position.x = laser_pose.x();
+  odom_msg_->pose.pose.position.y = laser_pose.y();
+  odom_msg_->pose.pose.position.z = 0.0;
+  odom_msg_->pose.pose.orientation.x = q.x();
+  odom_msg_->pose.pose.orientation.y = q.y();
+  odom_msg_->pose.pose.orientation.z = q.z();
+  odom_msg_->pose.pose.orientation.w = q.w();
+
+  odom_pub_->publish(*odom_msg_);
 
 }
 
