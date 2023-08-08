@@ -1,2 +1,0 @@
-
-BasicSensorValueData[] values_data

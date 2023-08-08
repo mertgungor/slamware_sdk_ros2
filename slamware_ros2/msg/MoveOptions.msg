@@ -1,3 +1,0 @@
-
-MoveOptionFlag opt_flags
-OptionalFlt64 speed_ratio

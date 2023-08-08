@@ -1,3 +1,0 @@
-
-OptionalInt32 max_time_ms
-OptionalLocalizationMovement mvmt_type

@@ -1,8 +1,0 @@
-
-int8 UNKNOWN=-1
-int8 FORWARD=0
-int8 BACKWARD=1
-int8 TURNRIGHT=2
-int8 TURNLEFT=3
-
-int8 direction

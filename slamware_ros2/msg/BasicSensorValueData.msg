@@ -1,3 +1,0 @@
-
-BasicSensorInfo info
-BasicSensorValue value

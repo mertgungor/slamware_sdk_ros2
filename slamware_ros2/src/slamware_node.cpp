@@ -33,7 +33,7 @@ void SlamwareNode::publish_laser_scan()
   double scan_duration = (end_scan_time - start_scan_time).seconds();
 
   scan_msg_->header.stamp = start_scan_time;
-  scan_msg_->header.frame_id = "base_link_frame";
+  scan_msg_->header.frame_id = "base_link";
   fillRangeMinMaxInMsg_(laser_points, scan_msg_);
 
   scan_msg_->ranges.resize(laser_points.size());
@@ -94,7 +94,7 @@ void SlamwareNode::broadcastMap2Laser(){
   
   transform_stamped.header.stamp = clock_->now();
   transform_stamped.header.frame_id = "map";
-  transform_stamped.child_frame_id = "base_link_frame";
+  transform_stamped.child_frame_id = "base_link";
   transform_stamped.transform.translation.x = laser_pose.x();
   transform_stamped.transform.translation.y = laser_pose.y();
   transform_stamped.transform.translation.z = 0.0;
@@ -109,7 +109,7 @@ void SlamwareNode::broadcastMap2Laser(){
 
   odom_msg_->header.stamp = clock_->now();
   odom_msg_->header.frame_id = "map";
-  odom_msg_->child_frame_id = "base_link_frame";
+  odom_msg_->child_frame_id = "base_link";
   odom_msg_->pose.pose.position.x = laser_pose.x();
   odom_msg_->pose.pose.position.y = laser_pose.y();
   odom_msg_->pose.pose.position.z = 0.0;

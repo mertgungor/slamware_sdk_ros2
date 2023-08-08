@@ -1,3 +1,0 @@
-
-ActionDirection direction
-MoveOptions options

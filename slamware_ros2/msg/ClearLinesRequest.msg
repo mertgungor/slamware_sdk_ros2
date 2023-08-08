@@ -1,2 +1,0 @@
-
-ArtifactUsage usage
