@@ -7,6 +7,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <nav_msgs/msg/occupancy_grid.hpp>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2/LinearMath/Quaternion.h>
 
 #include "server_map_holder.hpp"
 
@@ -28,6 +30,7 @@ public:
             ) const;
 
   void getMapDataRos();
+  void broadcastMap2Laser();
 
 private:
     
@@ -38,12 +41,17 @@ private:
     rclcpp::Publisher<nav_msgs::msg::OccupancyGrid>::SharedPtr map_pub_;
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Clock::SharedPtr clock_;
+    geometry_msgs::msg::TransformStamped transform_stamped;
     
     rpos::features::system_resource::LaserScan  rpos_laser_scan;
     rpos::robot_platforms::SlamwareCorePlatform rpos_platform;
+    rpos::core::Pose laser_pose;
     std::vector<rpos::core::LaserPoint> laser_points;
 
     slamware_ros_sdk::ServerMapHolder map_holder;
+
+    std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+    tf2::Quaternion q;
     };
 
 

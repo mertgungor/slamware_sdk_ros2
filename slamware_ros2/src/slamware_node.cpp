@@ -14,6 +14,8 @@ SlamwareNode::SlamwareNode() : Node("slamware_node")
   laser_scan_pub_ = this->create_publisher<sensor_msgs::msg::LaserScan>("scan", 10);
   map_pub_        = this->create_publisher<nav_msgs::msg::OccupancyGrid>("map", 10);
 
+  tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+
   timer_ = this->create_wall_timer(std::chrono::milliseconds(50), std::bind(&SlamwareNode::publish_laser_scan, this));
 }
 
@@ -22,13 +24,14 @@ void SlamwareNode::publish_laser_scan()
   // RCLCPP_INFO(this->get_logger(), "Publishing Laser Scan");
 
   rclcpp::Time start_scan_time = clock_->now();
-  laser_points = rpos_platform.getLaserScan().getLaserPoints();
+  rpos_laser_scan = rpos_platform.getLaserScan();
+  laser_points    = rpos_laser_scan.getLaserPoints();
   rclcpp::Time end_scan_time = clock_->now();
 
   double scan_duration = (end_scan_time - start_scan_time).seconds();
 
   scan_msg_->header.stamp = start_scan_time;
-  scan_msg_->header.frame_id = "laser_frame";
+  scan_msg_->header.frame_id = "base_link";
   fillRangeMinMaxInMsg_(laser_points, scan_msg_);
 
   scan_msg_->ranges.resize(laser_points.size());
@@ -51,7 +54,11 @@ void SlamwareNode::publish_laser_scan()
   scan_msg_->scan_time = scan_duration;
   scan_msg_->time_increment = scan_duration / (double)(scan_msg_->ranges.size() - 1);
 
+  laser_pose = rpos_laser_scan.getLaserPointsPose();
+  std::cout << "x: " << laser_pose.x() << " y: " << laser_pose.y() << " yaw: " << laser_pose.yaw() << std::endl;
+
   laser_scan_pub_->publish(*scan_msg_);
+  broadcastMap2Laser();
   getMapDataRos();
 }
 
@@ -65,23 +72,6 @@ void SlamwareNode::getMapDataRos(){
     rpos::features::location_provider::MapTypeBitmap8Bit, knownArea, rpos::features::location_provider::EXPLORERMAP
   );
 
-  // RCLCPP_INFO(this->get_logger(), "Map Area: %f", map.getMapArea().area());
-  // map_msg_->header.stamp = clock_->now();
-  // map_msg_->header.frame_id = "map";
-  // map_msg_->info.resolution = map.getMapResolution().x();
-  // map_msg_->info.width = knownArea.width();
-  // map_msg_->info.height = knownArea.height();
-  // map_msg_->info.origin.position.x = map.getMapArea().left();
-  // map_msg_->info.origin.position.y = map.getMapArea().top();
-  // map_msg_->info.origin.position.z = 0.0;
-  // map_msg_->info.origin.orientation.x = 0.0;
-  // map_msg_->info.origin.orientation.y = 0.0;
-  // map_msg_->info.origin.orientation.z = 0.0;
-  // map_msg_->info.origin.orientation.w = 1.0;
-
-  // map_msg_->data.resize(map.getMapData().width() * map.getMapData().height());
-
-  
   map_msg_->header.stamp = clock_->now();
   map_msg_->header.frame_id = "map";
   map_holder.ServerMapHolder::fillRosMapMsg(knownArea, *map_msg_);
@@ -89,13 +79,32 @@ void SlamwareNode::getMapDataRos(){
 
   map_pub_->publish(*map_msg_);
 
-  auto map_data = map.getMapData();
-  for(auto data : map_data){
-    RCLCPP_INFO(this->get_logger(), "Map Data: %d", data);
-  }
-  RCLCPP_INFO(this->get_logger(), "===========================================");
+  // auto map_data = map.getMapData();
+  // for(auto data : map_data){
+  //   RCLCPP_INFO(this->get_logger(), "Map Data: %d", data);
+  // }
+  // RCLCPP_INFO(this->get_logger(), "===========================================");
 
   
+}
+
+void SlamwareNode::broadcastMap2Laser(){
+  
+  transform_stamped.header.stamp = clock_->now();
+  transform_stamped.header.frame_id = "map";
+  transform_stamped.child_frame_id = "base_link";
+  transform_stamped.transform.translation.x = laser_pose.x();
+  transform_stamped.transform.translation.y = laser_pose.y();
+  transform_stamped.transform.translation.z = 0.0;
+  q.setRPY(0, 0, laser_pose.yaw());
+
+  transform_stamped.transform.rotation.x = q.x();
+  transform_stamped.transform.rotation.y = q.y();
+  transform_stamped.transform.rotation.z = q.z();
+  transform_stamped.transform.rotation.w = q.w();
+
+  tf_broadcaster_->sendTransform(transform_stamped);
+
 }
 
 void SlamwareNode::fillRangeMinMaxInMsg_(const std::vector<rpos::core::LaserPoint> & laserPoints
