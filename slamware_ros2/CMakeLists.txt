@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
+
 project(slamware_ros2)
 
 find_path(slamware_sdk_INCLUDE_DIR rpos/rpos.h ${PROJECT_SOURCE_DIR}/../slamware_sdk/include)
@@ -31,6 +32,8 @@ include_directories(
 )
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")

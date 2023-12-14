@@ -51,8 +51,8 @@ namespace rpos { namespace robot_platforms {
         virtual ~SlamwareCorePlatform();
 
     public:
-        static SlamwareCorePlatform connect(const std::string& host, int port, int timeoutInMs = 10000)
-            throw(ConnectionTimeOutException, ConnectionFailException);
+        static SlamwareCorePlatform connect(const std::string& host, int port, int timeoutInMs = 10000);
+            
         void disconnect();
 
     public:
